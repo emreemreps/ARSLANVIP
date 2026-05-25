@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ARSLANVIP</title>
+
+<style>
+*{box-sizing:border-box;}
+
+body{
+margin:0;
+font-family:system-ui;
+background:radial-gradient(circle at top,#151525,#0b0b10);
+color:white;
+overflow-x:hidden;
+}
+
+/* TOP */
+.topbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:14px;
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(10px);
+position:sticky;
+top:0;
+}
+
+/* SIDE */
+.side{
+position:fixed;
+top:0;
+right:-260px;
+width:240px;
+height:100%;
+background:#141420;
+padding:18px;
+transition:.3s;
+z-index:999;
+}
+.side.open{right:0;}
+
+.lang{
+padding:12px;
+margin:8px 0;
+background:#222;
+border-radius:10px;
+text-align:center;
+cursor:pointer;
+}
+
+/* CONTAINER */
+.container{max-width:420px;margin:auto;padding:14px;}
+
+.card{
+background:rgba(255,255,255,0.05);
+border:1px solid rgba(255,255,255,0.08);
+border-radius:18px;
+padding:14px;
+margin-bottom:14px;
+}
+
+/* BUTTONS */
+button{
+width:100%;
+padding:14px;
+margin:8px 0;
+border:none;
+border-radius:14px;
+font-weight:600;
+font-size:15px;
+color:white;
+background:linear-gradient(135deg,#4facfe,#00f2fe);
+cursor:pointer;
+}
+
+button.red{background:linear-gradient(135deg,#ff416c,#ff4b2b);}
+button.green{background:linear-gradient(135deg,#00c853,#b2ff59);color:black;}
+
+textarea{
+width:100%;
+min-height:90px;
+border-radius:12px;
+border:none;
+padding:12px;
+resize:none;
+outline:none;
+}
+
+/* TOAST */
+#toast{
+position:fixed;
+bottom:20px;
+left:50%;
+transform:translateX(-50%);
+background:#000000cc;
+padding:10px 16px;
+border-radius:10px;
+opacity:0;
+transition:.3s;
+}
+#toast.show{opacity:1;bottom:40px;}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+<div id="title">ARSLANVIP</div>
+<div onclick="toggle()">☰</div>
+</div>
+
+<div class="side" id="side">
+<h3 id="langTitle">Diller</h3>
+<div class="lang" onclick="setLang('tr')">🇹🇷 Türkçe</div>
+<div class="lang" onclick="setLang('en')">🇬🇧 English</div>
+<div class="lang" onclick="setLang('ru')">🇷🇺 Русский</div>
+<div class="lang" onclick="setLang('lt')">🇱🇹 Lietuvių</div>
+</div>
+
+<div class="container">
+
+<div class="card">
+<div id="hint">2 saatlik yol konfor paneli</div>
+
+<button id="b1" onclick="send('klima')"></button>
+<button id="b2" onclick="send('mola')"></button>
+<button class="red" id="b3" onclick="send('yavas')"></button>
+<button id="b4" onclick="send('hizli')"></button>
+</div>
+
+<div class="card">
+<textarea id="msg"></textarea>
+<button class="green" onclick="customSend()" id="sendBtn">Send</button>
+</div>
+
+</div>
+
+<div id="toast">OK</div>
+
+<script>
+
+const token="8974234362:AAGxiDk5dXMIljDYMrM-ornwggg_lI5piLs";
+const chatId="5186449555";
+
+/* DİL DATA */
+const L={
+tr:{
+hint:"KONTROL MERKEZİ",
+b1:"🧊 Klimayı Yükselt",
+b2:"⛽ Mola",
+b3:"🐢 Yavaş git",
+b4:"⚡ Hızlı git",
+klima:"🧊 Klima çok soğuk",
+mola:"⛽ Mola istiyoruz",
+yavas:"🐢 Daha sakin",
+hizli:"⚡ Daha hızlı"
+},
+en:{
+hint:"CONTROL CENTER",
+b1:"🧊 AC More",
+b2:"⛽ Stop",
+b3:"🐢 Slow down",
+b4:"⚡ Speed up",
+klima:"🧊 AC too cold",
+mola:"⛽ Need stop",
+yavas:"🐢 Slower",
+hizli:"⚡ Faster"
+},
+ru:{
+hint:"ЦЕНТР УПРАВЛЕНИЯ",
+b1:"🧊 Больше кондиционеров",
+b2:"⛽ Стоп",
+b3:"🐢 Медленно",
+b4:"⚡ Быстро",
+klima:"🧊 Холодно",
+mola:"⛽ Остановка",
+yavas:"🐢 Медленнее",
+hizli:"⚡ Быстрее"
+},
+lt:{
+hint:"VALDYMO CENTRAS",
+b1:"🧊 Daugiau oro kondicionavimo",
+b2:"⛽ Sustoti",
+b3:"🐢 Lėtai",
+b4:"⚡ Greitai",
+klima:"🧊 Per šalta",
+mola:"⛽ Sustok",
+yavas:"🐢 Lėčiau",
+hizli:"⚡ Greičiau"
+}
+};
+
+let lang="tr";
+
+/* APPLY UI */
+function apply(){
+const t=L[lang];
+
+document.getElementById("hint").innerText=t.hint;
+
+document.getElementById("b1").innerText=t.b1;
+document.getElementById("b2").innerText=t.b2;
+document.getElementById("b3").innerText=t.b3;
+document.getElementById("b4").innerText=t.b4;
+}
+
+/* SEND */
+function send(type){
+
+const t=L[lang][type];
+
+fetch(`https://api.telegram.org/bot${token}/sendMessage`,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+chat_id:chatId,
+text:"🚐 VIP:\n"+t+"\n\n🧑‍✈️ ŞOFÖR (TR):\n"+L.tr[type]
+})
+});
+
+toast("Gönderildi");
+}
+
+/* CUSTOM */
+function customSend(){
+const msg=document.getElementById("msg").value;
+if(!msg.trim())return;
+
+fetch(`https://api.telegram.org/bot${token}/sendMessage`,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+chat_id:chatId,
+text:"🚐 VIP:\n"+msg+"\n\n🧑‍✈️ DRIVER (TR):\n"+msg
+})
+});
+
+document.getElementById("msg").value="";
+toast("Gönderildi");
+}
+
+/* LANG */
+function setLang(l){
+lang=l;
+apply();
+toggle();
+}
+
+/* MENU */
+function toggle(){
+document.getElementById("side").classList.toggle("open");
+}
+
+/* TOAST */
+function toast(msg){
+const t=document.getElementById("toast");
+t.innerText=msg;
+t.classList.add("show");
+setTimeout(()=>t.classList.remove("show"),1200);
+}
+
+apply();
+
+</script>
+
+</body>
+</html>
