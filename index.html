@@ -132,7 +132,7 @@ transition:.3s;
 </div>
 
 <div class="card">
-<textarea id="msg" placeholder="Messages will be written here."></textarea>
+<textarea id="msg" placeholder="Mesajınızı yazın... / Write your message..."></textarea>
 <button class="green" onclick="customSend()" id="sendBtn">Send🚀</button>
 </div>
 
@@ -207,9 +207,8 @@ document.getElementById("b3").innerText=t.b3;
 document.getElementById("b4").innerText=t.b4;
 }
 
-/* SEND */
+/* SEND (Sabit Butonlar İçin) */
 function send(type){
-
 const t=L[lang][type];
 
 fetch(`https://api.telegram.org/bot${token}/sendMessage`,{
@@ -221,25 +220,43 @@ text:"🚐 VIP:\n"+t+"\n\n🧑‍✈️ ŞOFÖR (TR):\n"+L.tr[type]
 })
 });
 
-toast("Gönderildi");
+toast("Gönderildi / Sent");
 }
 
-/* CUSTOM */
-function customSend(){
+/* CUSTOM SEND WITH AUTOMATIC TRANSLATION (Özel Metin Alanı İçin) */
+async function customSend(){
 const msg=document.getElementById("msg").value;
-if(!msg.trim())return;
+if(!msg.trim()) return;
 
+let turkishTranslation = msg;
+
+// Eğer yazılan metin Türkçe değilse veya sistem dilinden farklıysa otomatik çeviriyoruz
+try {
+    // Google Translate Ücretsiz Web API'si (Kaynak dili otomatik algılar 'sl=auto', Hedef dil Türkçe 'tl=tr')
+    const response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=tr&dt=t&q=${encodeURIComponent(msg)}`);
+    const data = await response.json();
+    
+    // Google API'den gelen veriyi birleştiriyoruz (Uzun cümleler parçalı gelebilir)
+    if(data && data[0]) {
+        turkishTranslation = data[0].map(item => item[0]).join('');
+    }
+} catch (error) {
+    console.error("Çeviri hatası:", error);
+    // Çeviri başarısız olursa orijinal mesajı yollamaya devam etmesi için hata yutulur
+}
+
+// Telegram'a gönderme işlemi
 fetch(`https://api.telegram.org/bot${token}/sendMessage`,{
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
 chat_id:chatId,
-text:"🚐 VIP:\n"+msg+"\n\n🧑‍✈️ DRIVER (TR):\n"+msg
+text:"🚐 VIP (Orijinal):\n"+msg+"\n\n🧑‍✈️ ŞOFÖR (TR Çeviri):\n"+turkishTranslation
 })
 });
 
 document.getElementById("msg").value="";
-toast("Gönderildi");
+toast("Gönderildi / Sent");
 }
 
 /* LANG */
