@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -144,6 +143,21 @@ body {
     color: var(--text-main);
 }
 #title span { color: var(--premium-gold); }
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+.theme-toggle-btn {
+    font-size: 22px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s;
+    padding: 5px;
+}
+.theme-toggle-btn:active {
+    transform: scale(0.85);
+}
 .menu-btn {
     font-size: 24px;
     cursor: pointer;
@@ -175,7 +189,7 @@ body {
     margin-top: 15px;
 }
 .side h3:first-of-type { margin-top: 0; }
-.lang, .theme-btn {
+.lang {
     padding: 14px;
     margin: 8px 0;
     background: var(--card-bg);
@@ -187,7 +201,7 @@ body {
     color: var(--text-main);
     transition: all 0.2s;
 }
-.lang:active, .theme-btn:active {
+.lang:active {
     background: rgba(212, 175, 55, 0.1);
     border-color: var(--premium-gold);
 }
@@ -491,13 +505,13 @@ textarea:focus { border-color: var(--premium-gold); }
 <div id="app-screen">
     <div class="topbar">
         <div id="title">ARSLAN<span>VIP</span></div>
-        <div class="menu-btn" onclick="toggle()">☰</div>
+        <div class="topbar-actions">
+            <div class="theme-toggle-btn" id="themeToggleIcon" onclick="toggleTheme()">☀️</div>
+            <div class="menu-btn" onclick="toggle()">☰</div>
+        </div>
     </div>
 
     <div class="side" id="side">
-        <h3 id="themeTitle">Görünüm / Theme</h3>
-        <div class="theme-btn" onclick="toggleTheme()" id="themeBtnText">🌙 Koyu Tema / Dark Mode</div>
-
         <h3 id="langTitle">Diller / Languages</h3>
         <div class="lang" onclick="setLang('tr')">🇹🇷 Türkçe</div>
         <div class="lang" onclick="setLang('en')">🇬🇧 English</div>
@@ -820,12 +834,12 @@ let selectedRating = 0;
 let encodedImageBase64 = "";
 
 window.addEventListener('DOMContentLoaded', () => {
-    // Tema Yönetimi
+    // Tema Yönetimi (Hafızadan Yükleme)
     const savedTheme = localStorage.getItem('vip_theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
-    updateThemeButtonText(savedTheme);
+    updateThemeIcon(savedTheme);
 
-    // GÜNCELLEME: Dil Yönetimi Hafızadan Okunuyor
+    // Dil Yönetimi (Hafızadan Yükleme)
     const savedLang = localStorage.getItem('vip_lang') || 'tr';
     window.currentLang = savedLang;
 
@@ -837,7 +851,6 @@ window.addEventListener('DOMContentLoaded', () => {
         document.getElementById("app-screen").style.display = "flex";
     }
     
-    // Her durumda dil paketini ve metinleri uygula
     apply();
 });
 
@@ -846,13 +859,15 @@ function toggleTheme() {
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('vip_theme', newTheme);
-    updateThemeButtonText(newTheme);
+    updateThemeIcon(newTheme);
 }
 
-function updateThemeButtonText(theme) {
-    const btn = document.getElementById("themeBtnText");
-    if(btn) {
-        btn.innerText = theme === 'dark' ? "☀️ Açık Tema / Light Mode" : "🌙 Koyu Tema / Dark Mode";
+// GÜNCELLEME: Güneş / Ay ikon mantığı mekanizması
+function updateThemeIcon(theme) {
+    const iconEl = document.getElementById("themeToggleIcon");
+    if(iconEl) {
+        // Dark tema aktifse Güneş ikonu (Açık temaya geçmek için), Light tema aktifse Ay ikonu gösterilir
+        iconEl.innerText = theme === 'dark' ? "☀️" : "🌙";
     }
 }
 
@@ -875,7 +890,7 @@ function login() {
 
 function logout() {
     localStorage.removeItem('vip_passenger_name');
-    localStorage.removeItem('vip_lang'); // Çıkış yapınca dili de sıfırlayabiliriz
+    localStorage.removeItem('vip_lang');
     location.reload();
 }
 
@@ -1080,10 +1095,9 @@ function sendReview() {
     document.getElementById("reviewMsg").value = "";
 }
 
-// GÜNCELLEME: Seçilen dil artık hafızaya kalıcı olarak yazılıyor
 function setLang(l){
 window.currentLang=l;
-localStorage.setItem('vip_lang', l); // Hafızaya kaydet
+localStorage.setItem('vip_lang', l);
 apply();
 toggle();
 }
