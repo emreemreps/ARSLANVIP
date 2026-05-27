@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -614,7 +615,7 @@ textarea:focus { border-color: var(--premium-gold); }
       if(!container) return;
       container.innerHTML = "";
 
-      const currentLang = window.currentLang || "tr";
+      const currentLang = window.currentLang || localStorage.getItem('vip_lang') || "tr";
       const dataList = window.latestReviewsData || [];
       
       if(dataList.length === 0) {
@@ -649,7 +650,7 @@ textarea:focus { border-color: var(--premium-gold); }
       if(!container) return;
       container.innerHTML = "";
 
-      const currentLang = window.currentLang || "tr";
+      const currentLang = window.currentLang || localStorage.getItem('vip_lang') || "tr";
       const dataList = window.latestMemoriesData || [];
 
       if(dataList.length === 0) {
@@ -819,18 +820,25 @@ let selectedRating = 0;
 let encodedImageBase64 = "";
 
 window.addEventListener('DOMContentLoaded', () => {
+    // Tema Yönetimi
     const savedTheme = localStorage.getItem('vip_theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
     updateThemeButtonText(savedTheme);
 
+    // GÜNCELLEME: Dil Yönetimi Hafızadan Okunuyor
+    const savedLang = localStorage.getItem('vip_lang') || 'tr';
+    window.currentLang = savedLang;
+
+    // Oturum Kontrolü
     const savedName = localStorage.getItem('vip_passenger_name');
     if (savedName) {
         currentUserName = savedName;
         document.getElementById("auth-screen").style.display = "none";
         document.getElementById("app-screen").style.display = "flex";
-        updateGreeting();
-        apply();
     }
+    
+    // Her durumda dil paketini ve metinleri uygula
+    apply();
 });
 
 function toggleTheme() {
@@ -861,19 +869,25 @@ function login() {
         document.getElementById("auth-screen").style.display = "none";
         document.getElementById("app-screen").style.display = "flex";
     }, 500);
-    updateGreeting();
     apply();
     toast("✨ Hoş Geldiniz / Welcome");
 }
 
 function logout() {
     localStorage.removeItem('vip_passenger_name');
+    localStorage.removeItem('vip_lang'); // Çıkış yapınca dili de sıfırlayabiliriz
     location.reload();
 }
 
 function updateGreeting() {
     const welcomeText = window.L[window.currentLang].welcome || "Hoş geldiniz";
-    document.getElementById("userGreeting").innerText = `✨ ${welcomeText}, ${currentUserName} ✨`;
+    const greetingEl = document.getElementById("userGreeting");
+    if(greetingEl && currentUserName) {
+        greetingEl.innerText = `✨ ${welcomeText}, ${currentUserName} ✨`;
+        greetingEl.style.display = "block";
+    } else if(greetingEl) {
+        greetingEl.style.display = "none";
+    }
 }
 
 function apply(){
@@ -947,7 +961,7 @@ document.getElementById("msg").value="";
 toast("✅ İletildi / Sent");
 }
 
-/* YENİ: SMART IMAGE COMPRESSOR (Görsel Boyut Sıkıştırıcı Motor) */
+/* SMART IMAGE COMPRESSOR */
 function previewImage(event) {
     const file = event.target.files[0];
     if(!file) return;
@@ -958,7 +972,6 @@ function previewImage(event) {
     reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
-            // Resmi maksimum 800px genişlik/yükseklikte premium kalitede ölçekle
             const max_size = 800;
             let width = img.width;
             let height = img.height;
@@ -981,7 +994,6 @@ function previewImage(event) {
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
 
-            // Kaliteyi %70'e çekerek veri boyutunu 100kb civarına düşürür (Firestore limiti asla aşılmaz)
             encodedImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
             
             const previewImg = document.getElementById("imagePreview");
@@ -1068,8 +1080,10 @@ function sendReview() {
     document.getElementById("reviewMsg").value = "";
 }
 
+// GÜNCELLEME: Seçilen dil artık hafızaya kalıcı olarak yazılıyor
 function setLang(l){
 window.currentLang=l;
+localStorage.setItem('vip_lang', l); // Hafızaya kaydet
 apply();
 toggle();
 }
@@ -1088,3 +1102,5 @@ setTimeout(()=>t.classList.remove("show"),1800);
 
 </body>
 </html>
+
+```
